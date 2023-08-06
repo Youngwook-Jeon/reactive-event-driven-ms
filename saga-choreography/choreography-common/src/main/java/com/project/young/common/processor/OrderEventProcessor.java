@@ -15,9 +15,9 @@ public interface OrderEventProcessor<R extends DomainEvent> extends EventProcess
         };
     }
 
-    Mono<R> handle(OrderEvent.OrderCreated e);
+    Mono<R> handle(OrderEvent.OrderCreated event);
 
-    Mono<R> handle(OrderEvent.OrderCancelled e);
+    Mono<R> handle(OrderEvent.OrderCancelled event);
 
-    Mono<R> handle(OrderEvent.OrderCompleted e);
+    Mono<R> handle(OrderEvent.OrderCompleted event);
 }
