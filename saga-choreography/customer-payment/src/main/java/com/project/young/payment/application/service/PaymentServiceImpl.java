@@ -55,7 +55,19 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public Mono<PaymentDto> refund(UUID orderId) {
-        return null;
+        return this.paymentRepository.findByOrderIdAndStatus(orderId, PaymentStatus.DEDUCTED)
+                .zipWhen(cp -> this.customerRepository.findById(cp.getCustomerId()))
+                .flatMap(t -> this.refundPayment(t.getT1(), t.getT2()))
+                .doOnNext(dto -> log.info("refunded amount {} for {}", dto.amount(), dto.orderId()));
+    }
+
+    private Mono<PaymentDto> refundPayment(CustomerPayment customerPayment, Customer customer) {
+        customer.setBalance(customer.getBalance() + customerPayment.getAmount());
+        customerPayment.setStatus(PaymentStatus.REFUNDED);
+        return this.customerRepository.save(customer)
+                .then(this.paymentRepository.save(customerPayment))
+                .map(EntityDtoMapper::toDto);
     }
 }
