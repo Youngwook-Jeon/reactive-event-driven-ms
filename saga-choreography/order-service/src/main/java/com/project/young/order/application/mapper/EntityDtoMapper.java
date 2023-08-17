@@ -4,10 +4,7 @@ import com.project.young.common.events.order.OrderStatus;
 import com.project.young.order.application.entity.OrderInventory;
 import com.project.young.order.application.entity.OrderPayment;
 import com.project.young.order.application.entity.PurchaseOrder;
-import com.project.young.order.common.dto.OrderCreateRequest;
-import com.project.young.order.common.dto.OrderInventoryDto;
-import com.project.young.order.common.dto.OrderPaymentDto;
-import com.project.young.order.common.dto.PurchaseOrderDto;
+import com.project.young.order.common.dto.*;
 
 public class EntityDtoMapper {
 
@@ -71,14 +68,16 @@ public class EntityDtoMapper {
                 .build();
     }
 
-//    public static OrderDetails toOrderDetails(PurchaseOrderDto orderDto,
-//                                              OrderPaymentDto paymentDto,
-//                                              OrderInventoryDto inventoryDto) {
-//        return OrderDetails.builder()
-//                .order(orderDto)
-//                .payment(paymentDto)
-//                .inventory(inventoryDto)
-//                .build();
-//    }
+    public static OrderDetails toOrderDetails(
+            PurchaseOrderDto orderDto,
+            OrderPaymentDto paymentDto,
+            OrderInventoryDto inventoryDto
+    ) {
+        return OrderDetails.builder()
+                .order(orderDto)
+                .payment(paymentDto)
+                .inventory(inventoryDto)
+                .build();
+    }
 
 }
