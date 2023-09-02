@@ -4,6 +4,7 @@ import com.project.young.common.messages.Request;
 import com.project.young.common.messages.inventory.InventoryResponse;
 import com.project.young.common.messages.payment.PaymentResponse;
 import com.project.young.common.messages.shipping.ShippingResponse;
+import com.project.young.common.publisher.EventPublisher;
 import com.project.young.order.common.service.OrderFulfillmentService;
 import com.project.young.order.messaging.orchestrator.InventoryStep;
 import com.project.young.order.messaging.orchestrator.OrderFulfillmentOrchestrator;
@@ -14,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class OrderFulfillmentOrchestratorImpl implements OrderFulfillmentOrchestrator {
@@ -22,6 +25,7 @@ public class OrderFulfillmentOrchestratorImpl implements OrderFulfillmentOrchest
     private final InventoryStep inventoryStep;
     private final ShippingStep shippingStep;
     private final OrderFulfillmentService service;
+    private final EventPublisher<UUID> eventPublisher;
     private Workflow workflow;
 
     @PostConstruct
@@ -42,7 +46,8 @@ public class OrderFulfillmentOrchestratorImpl implements OrderFulfillmentOrchest
 
     @Override
     public Publisher<Request> orderInitialRequests() {
-        return null;
+        return this.eventPublisher.publish()
+                .flatMap(this.workflow.getFirstStep()::send);
     }
 
     @Override
