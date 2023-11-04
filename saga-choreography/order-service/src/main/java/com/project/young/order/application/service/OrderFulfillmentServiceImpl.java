@@ -5,6 +5,7 @@ import com.project.young.order.application.entity.PurchaseOrder;
 import com.project.young.order.application.mapper.EntityDtoMapper;
 import com.project.young.order.application.repository.PurchaseOrderRepository;
 import com.project.young.order.common.dto.PurchaseOrderDto;
+import com.project.young.order.common.service.OrderEventListener;
 import com.project.young.order.common.service.OrderFulfillmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -20,17 +21,20 @@ import java.util.function.Function;
 public class OrderFulfillmentServiceImpl implements OrderFulfillmentService {
 
     private final PurchaseOrderRepository repository;
+    private final OrderEventListener orderEventListener;
 
     @Override
-    public Mono<PurchaseOrderDto> complete(UUID orderId) {
+    public Mono<Void> complete(UUID orderId) {
         return this.repository.getWhenOrderComponentsCompleted(orderId)
-                .transform(this.updateStatus(OrderStatus.COMPLETED));
+                .transform(this.updateStatus(OrderStatus.COMPLETED))
+                .flatMap(this.orderEventListener::onOrderCompleted);
     }
 
     @Override
-    public Mono<PurchaseOrderDto> cancel(UUID orderId) {
+    public Mono<Void> cancel(UUID orderId) {
         return this.repository.findByOrderIdAndStatus(orderId, OrderStatus.PENDING)
-                .transform(this.updateStatus(OrderStatus.CANCELLED));
+                .transform(this.updateStatus(OrderStatus.CANCELLED))
+                .flatMap(this.orderEventListener::onOrderCancelled);
     }
 
     private Function<Mono<PurchaseOrder>, Mono<PurchaseOrderDto>> updateStatus(OrderStatus status) {

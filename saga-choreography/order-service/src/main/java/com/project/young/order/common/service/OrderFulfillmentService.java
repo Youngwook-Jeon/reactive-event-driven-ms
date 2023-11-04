@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public interface OrderFulfillmentService {
 
-    Mono<PurchaseOrderDto> complete(UUID orderId);
+    Mono<Void> complete(UUID orderId);
 
-    Mono<PurchaseOrderDto> cancel(UUID orderId);
+    Mono<Void> cancel(UUID orderId);
 }

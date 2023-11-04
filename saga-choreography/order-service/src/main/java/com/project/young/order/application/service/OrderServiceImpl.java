@@ -11,6 +11,7 @@ import com.project.young.order.common.service.inventory.InventoryComponentFetche
 import com.project.young.order.common.service.payment.PaymentComponentFetcher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -26,9 +27,11 @@ public class OrderServiceImpl implements OrderService {
     private final InventoryComponentFetcher inventoryComponentFetcher;
 
     @Override
+    @Transactional
     public Mono<PurchaseOrderDto> placeOrder(OrderCreateRequest request) {
         var entity = EntityDtoMapper.toPurchaseOrder(request);
-        return this.repository.save(entity).map(EntityDtoMapper::toPurchaseOrderDto).doOnNext(eventListener::emitOrderCreated);
+        return this.repository.save(entity).map(EntityDtoMapper::toPurchaseOrderDto)
+                .flatMap(dto -> this.eventListener.onOrderCreated(dto).thenReturn(dto));
     }
 
     @Override

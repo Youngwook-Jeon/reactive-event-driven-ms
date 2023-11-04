@@ -37,8 +37,10 @@ public class OrderServiceTest extends AbstractIntegrationTest {
         // emit shipping scheduled event
         this.emitEvent(ShippingEvent.ShippingScheduled.builder().orderId(orderId).expectedDelivery(Instant.now()).build());
 
-        // expect no event
-        this.expectNoEvent();
+        // verify the order details via REST endpoint
+        // we might have to wait for sometime for stream bridge to send and app to process
+        Thread.sleep(1500);
+        // if you do not like this hard coded wait, plz autowire the processor bean as discussed
 
         this.verifyOrderDetails(orderId, r -> {
             Assertions.assertNotNull(r.order().deliveryDate());

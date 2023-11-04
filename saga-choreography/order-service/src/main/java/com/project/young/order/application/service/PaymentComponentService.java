@@ -4,6 +4,7 @@ import com.project.young.order.application.entity.OrderPayment;
 import com.project.young.order.application.mapper.EntityDtoMapper;
 import com.project.young.order.application.repository.OrderPaymentRepository;
 import com.project.young.order.common.dto.OrderPaymentDto;
+import com.project.young.order.common.service.OrderFulfillmentService;
 import com.project.young.order.common.service.payment.PaymentComponentFetcher;
 import com.project.young.order.common.service.payment.PaymentComponentStatusListener;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public class PaymentComponentService implements PaymentComponentFetcher, Payment
 
     private static final OrderPaymentDto DEFAULT = OrderPaymentDto.builder().build();
     private final OrderPaymentRepository repository;
+    private final OrderFulfillmentService fulfillmentService;
 
     @Override
     public Mono<OrderPaymentDto> getComponent(UUID orderId) {
@@ -30,14 +32,14 @@ public class PaymentComponentService implements PaymentComponentFetcher, Payment
     public Mono<Void> onSuccess(OrderPaymentDto message) {
         return this.repository.findByOrderId(message.orderId())
                 .switchIfEmpty(Mono.defer(() -> this.add(message, true)))
-                .then();
+                .then(this.fulfillmentService.complete(message.orderId()));
     }
 
     @Override
     public Mono<Void> onFailure(OrderPaymentDto message) {
         return this.repository.findByOrderId(message.orderId())
                 .switchIfEmpty(Mono.defer(() -> this.add(message, false)))
-                .then();
+                .then(this.fulfillmentService.cancel(message.orderId()));
     }
 
     @Override
